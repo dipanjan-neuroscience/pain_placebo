@@ -23,18 +23,20 @@ spm_figure('Create','Graphics','Graphics','on');
 %% definition according to the specific data 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 
-nd=5; % no of dummy scans
+nd=5; % no of dummy scans following the original publication
 
 % for Slice time correction 
 nslices = 25; 
 tr = 2.5; % in seconds
-ta = 2.4; % ta = tr - (tr/nslices)
-so = [0 100 200 300 400 500 600 700 800 900 1000 1100 1200 1300 1400 1500 1600 1700 1800 1900 2000 2100 2200 2300 2400]; % here we have ebtered slice timing in milliseconds
-refslice = 0; % reference slice timing in milliseconds
+ta = 2.4375; % ta = tr - (tr/nslices)(2.5-(2.5/40))
+%so = [0 100 200 300 400 500 600 700 800 900 1000 1100 1200 1300 1400 1500 1600 1700 1800 1900 2000 2100 2200 2300 2400]; % here we have ebtered slice timing in milliseconds
+so = [1:1:40]; % ascending slice order
+refslice = 1; % reference slice 
 
 
 % for smoothing
-fwhm=[4 4 10]; % the thumb of rules says fwhm should be twice the voxel dimension
+%fwhm=[4 4 10]; % the thumb of rules says fwhm should be twice the voxel dimension
+fwhm=[5 5 5]; % following the original publication
 
 % Get a list of all files and folders in func folder.
 files = dir('func');
