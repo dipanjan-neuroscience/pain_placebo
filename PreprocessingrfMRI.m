@@ -26,7 +26,7 @@ spm_figure('Create','Graphics','Graphics','on');
 nd=5; % no of dummy scans following the original publication
 
 % for Slice time correction 
-nslices = 25; 
+nslices = 40; 
 tr = 2.5; % in seconds
 ta = 2.4375; % ta = tr - (tr/nslices)(2.5-(2.5/40))
 %so = [0 100 200 300 400 500 600 700 800 900 1000 1100 1200 1300 1400 1500 1600 1700 1800 1900 2000 2100 2200 2300 2400]; % here we have ebtered slice timing in milliseconds
