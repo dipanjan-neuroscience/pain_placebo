@@ -61,15 +61,13 @@ end
 
 %% define DCMs
 
-voiNamesL={'VOI_lSMA_1.mat', 'VOI_lMC_1.mat'};
-voiNamesR={'VOI_rSMA_1.mat', 'VOI_rMC_1.mat'};   
+   
 
 
-% voiNamesL={'VOI_laIns_1.mat','VOI_lpIns_1.mat'};
-% voiNamesR={'VOI_raIns_1.mat','VOI_rpIns_1.mat'}; 
+voiNamesL={'VOI_laIns_1.mat','VOI_lpIns_1.mat'};
+voiNamesR={'VOI_raIns_1.mat','VOI_rpIns_1.mat'}; 
 
-% voiNamesL={'VOI_lFp1_1.mat','VOI_lSSC_1.mat','VOI_lV1_1.mat','VOI_lA1_1.mat'};
-% voiNamesR={'VOI_rFp1_1.mat','VOI_rSSC_1.mat','VOI_rV1_1.mat','VOI_rA1_1.mat'};
+
 
 
 
@@ -78,19 +76,19 @@ for sI = 1: length(subNames)
 
 cd(fullfile(GLM2_dir, subNames{sI}));
 
-model_name = 'L_Mot';
+model_name = 'L_Ins';
 
 xY         = voiNamesL;
 
 SPM        = 'SPM.mat';
 
-n   = 4;    % number of regions
+n   = 2;    % number of regions
 
 nu  = 1;    % number of inputs. For DCM for CSD we have one input: null
 
 TR  = 2.5;    % volume repetition time (seconds)
 
-TE  = 0.035; % echo time (seconds)
+TE  = 0.03; % echo time (seconds)
 
  
 
@@ -150,19 +148,19 @@ for sI = 1: length(subNames)
 
 cd(fullfile(GLM2_dir, subNames{sI}));
 
-model_name = 'R_Mot';
+model_name = 'R_Ins';
 
 xY         = voiNamesR;
 
 SPM        = 'SPM.mat';
 
-n   = 4;    % number of regions
+n   = 2;    % number of regions
 
 nu  = 1;    % number of inputs. For DCM for CSD we have one input: null
 
 TR  = 2.5;    % volume repetition time (seconds)
 
-TE  = 0.035; % echo time (seconds)
+TE  = 0.03; % echo time (seconds)
 
  
 
@@ -219,37 +217,37 @@ clear DCM
 
  for h=1: length(subNames) 
    
- GCM_L_Mot(h,1) = {fullfile(GLM2_dir, subNames{h},'DCM_L_Mot.mat')}; 
+ GCM_L_Ins(h,1) = {fullfile(GLM2_dir, subNames{h},'DCM_L_Ins.mat')}; 
  
  end
   
  
  for h=1: length(subNames) 
    
- GCM_R_Mot(h,1) = {fullfile(GLM2_dir, subNames{h},'DCM_R_Mot.mat')}; 
+ GCM_R_Ins(h,1) = {fullfile(GLM2_dir, subNames{h},'DCM_R_Ins.mat')}; 
  
   end
 
 use_parfor = true ;
-GCM_L_Mot = spm_dcm_fit(GCM_L_Mot);
-save('GCM_L_Mot.mat','GCM_L_Mot');
+GCM_L_Ins = spm_dcm_fit(GCM_L_Ins);
+save('GCM_L_Ins.mat','GCM_L_Ins');
 
 
-GCM_R_Mot = spm_dcm_fit(GCM_R_Mot);
-save('GCM_R_Mot.mat','GCM_R_Mot');
+GCM_R_Ins = spm_dcm_fit(GCM_R_Ins);
+save('GCM_R_Ins.mat','GCM_R_Ins');
 
 
 %%PEB
 
 
-load GCM_L_Mot.mat 
-load GCM_R_Mot.mat 
+load GCM_L_Ins.mat 
+load GCM_R_Ins.mat 
 
 
 load BDIAgeSexPost.mat
 
 %DCM for fMRI diagnostics
-spm_dcm_fmri_check (GCM_L_Mot)
+spm_dcm_fmri_check (GCM_L_Ins)
 
 BDIAgeSex(:,1)=BDIAgeSex(:,1)-mean(BDIAgeSex(:,1));
 
@@ -266,9 +264,9 @@ field = {'A'};
 
 % Estimate model
 
-PEB_L_MotTrt    = spm_dcm_peb(GCM_L_Mot,M,field);
+PEB_L_InsTrt    = spm_dcm_peb(GCM_L_Ins,M,field);
 
-save('PEB_L_MotTrt.mat','PEB_L_MotTrt'); 
+save('PEB_L_InsTrt.mat','PEB_L_InsTrt'); 
 
 M   = struct();
 M.Q = 'all'; 
@@ -281,9 +279,9 @@ field = {'A'};
 
 % Estimate model
 
-PEB_R_MotTrt    = spm_dcm_peb(GCM_R_Mot,M,field);
+PEB_R_InsTrt    = spm_dcm_peb(GCM_R_Ins,M,field);
 
-save('PEB_R_MotTrt.mat','PEB_R_MotTrt'); 
+save('PEB_R_InsTrt.mat','PEB_R_InsTrt'); 
 
 %%BMR & BMA
 clear
