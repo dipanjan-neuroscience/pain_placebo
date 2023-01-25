@@ -15,8 +15,10 @@ addpath(SPM_PATH)
 spm('Defaults','fMRI');
 spm_jobman('initcfg');
 
-spm('CreateIntWin','on');
-spm_figure('Create','Graphics','Graphics','on');
+% spm('CreateIntWin','on');
+% spm_figure('Create','Graphics','Graphics','on');
+
+spm_figure('GetWin','Graphics'); % to open the graphics window and ensure generation of .ps files
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -25,13 +27,20 @@ spm_figure('Create','Graphics','Graphics','on');
 
 nd=5; % no of dummy scans following the original publication
 
+%%  for Slice time correction 
+% nslices = 40; 
+% tr = 2.5; % in seconds
+% ta = 2.4375; % ta = tr - (tr/nslices)(2.5-(2.5/40))
+% %so = [0 100 200 300 400 500 600 700 800 900 1000 1100 1200 1300 1400 1500 1600 1700 1800 1900 2000 2100 2200 2300 2400]; % here we have ebtered slice timing in milliseconds
+% so = [1:1:40]; % ascending slice order
+% refslice = 1; % reference slice 
+
 % for Slice time correction 
-nslices = 40; 
-tr = 2.5; % in seconds
-ta = 2.4375; % ta = tr - (tr/nslices)(2.5-(2.5/40))
-%so = [0 100 200 300 400 500 600 700 800 900 1000 1100 1200 1300 1400 1500 1600 1700 1800 1900 2000 2100 2200 2300 2400]; % here we have ebtered slice timing in milliseconds
-so = [1:1:40]; % ascending slice order
-refslice = 1; % reference slice 
+nslices = 36; 
+tr = 2.25; % in seconds
+ta = 2.1875; % ta = tr - (tr/nslices)(2.25-(2.25/36))
+so = [1:1:36]; % ascending slice order
+refslice = 1; % reference slice
 
 
 % for smoothing
@@ -39,7 +48,7 @@ refslice = 1; % reference slice
 fwhm=[5 5 5]; % following the original publication
 
 % Get a list of all files and folders in func folder.
-files = dir('func');
+files = dir('*sub-*');
 % Get a logical vector that tells which is a directory.
 dirFlags = [files.isdir];
 % Extract only those that are directories.
@@ -49,23 +58,23 @@ for k = 1 : length(subFolders)
 subNames{1,k}=subFolders(k).name;
 end
 
-clear k subFolders 
+%clear k subFolders 
 
-for sI = 1: length(subNames)
+for sI = 1 %: length(subNames)
 
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% directories 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%     
 % define directories    
-str_dir = fullfile(root_dir, subNames{sI},'t1');
-func_dir = fullfile(root_dir, subNames{sI},'rsfmri');
+str_dir = fullfile(root_dir, subNames{sI},'anat');
+func_dir = fullfile(root_dir, subNames{sI},'func');
 
 
 % file select
-f_or = spm_select('FPList',func_dir,'^vol.*\.nii$'); % original functional images
+f_or = spm_select('FPList',func_dir,'^*_bold.nii$'); % original functional images
 %f = spm_select('FPList',func_dir,'^vol.*\.nii$'); % functional images
-s= spm_select('FPList',str_dir,'^defaced.*\.nii$'); % structural images 
+s= spm_select('FPList',str_dir,'^*_T1w.nii$'); % structural images 
 
 
 
@@ -101,8 +110,8 @@ matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_move.action.moveto = cellstr(f
 spm_jobman('run',matlabbatch);
 
 
-f = spm_select('FPList',func_dir,'^vol.*\.nii$'); % functional images
-
+f = spm_select('FPList',func_dir,'^*.nii$'); % functional images
+%f = f_or;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% DUMMY SCANS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -123,7 +132,7 @@ spm_jobman('run',matlabbatch);
 
 
 %% Realignment
-f = spm_select('FPList',func_dir,'^vol.*\.nii$'); % functional images
+f = spm_select('FPList',func_dir,'^*nii$'); % functional images
 
 clear matlabbatch
 
@@ -153,8 +162,8 @@ rp1(r+1,:)=[];
 sq=rp.^2; % squared head motion parameters
 
 % file select
-rf = spm_select('FPList',func_dir,'^rvol.*\.nii$');% realigned images
-meanf=spm_select('FPList',func_dir,'^meanvol.*\.nii$');% mean image
+rf = spm_select('FPList',func_dir,'^r.*\.nii$');% realigned images
+meanf=spm_select('FPList',func_dir,'^mean.*\.nii$');% mean image
 
 clear matlabbatch
 
@@ -324,7 +333,7 @@ nuis_reg= horzcat(rp,rp1,sq,wm,csf); % friston regressor plus time series from w
 save(fullfile(glm_dir,'nuis_reg.txt' ), 'nuis_reg','-ascii');
 
 % file select
-smooth= spm_select('FPList',func_dir,'^swarvol.*\.nii$'); % select smoothed files
+smooth= spm_select('FPList',func_dir,'^*swarsub*'); % select smoothed files
 
 %% Model specification
 matlabbatch{1}.spm.stats.fmri_spec.dir = cellstr(fullfile(GLM2_dir, subNames{sI}));
