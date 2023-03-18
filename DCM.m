@@ -59,21 +59,262 @@ end
 end
 
 
-%%  find correlation between posterior insula and all other ROIs in each hemispheres
+%% define DCMs
 
-%% Fisher's Z transformation of correlation values
-% The Fisher Z-Transformation is a way to transform the sampling distribution of Pearson’s r (i.e. the correlation coefficient) 
-% so that it becomes normally distributed. The “z” in Fisher Z stands for a z-score.
+   
 
-%% One smaple t test
 
-%% inverse transformation
-
-%% plotting result on the brain
+voiNamesL={'VOI_laIns_1.mat','VOI_lpIns_1.mat'};
+voiNamesR={'VOI_raIns_1.mat','VOI_rpIns_1.mat'}; 
 
 
 
 
 
 
+for sI = 1: length(subNames)
 
+cd(fullfile(GLM2_dir, subNames{sI}));
+
+model_name = 'L_Ins';
+
+xY         = voiNamesL;
+
+SPM        = 'SPM.mat';
+
+n   = 2;    % number of regions
+
+nu  = 1;    % number of inputs. For DCM for CSD we have one input: null
+
+TR  = 2.5;    % volume repetition time (seconds)
+
+TE  = 0.03; % echo time (seconds)
+
+ 
+
+% Connectivity matrices
+
+a  = ones(n,n);
+
+b  = zeros(n,n,nu);
+
+c  = zeros(n,nu);
+
+d  = zeros(n,n,0);
+
+ 
+
+% Specify DCM
+
+s = struct();
+
+s.name       = model_name;
+
+s.u          = [];
+
+s.delays     = repmat(TR/2, 1, n)';
+
+s.TE         = TE;
+
+s.nonlinear  = false;
+
+s.two_state  = false;
+
+s.stochastic = false;
+
+s.centre     = false;
+
+s.induced    = 1;       % indicates DCM for CSD
+
+s.a          = a;
+
+s.b          = b;
+
+s.c          = c;
+
+s.d          = d;
+
+ 
+
+DCM = spm_dcm_specify(SPM,xY,s);
+
+
+
+end
+
+clear DCM
+
+for sI = 1: length(subNames)
+
+cd(fullfile(GLM2_dir, subNames{sI}));
+
+model_name = 'R_Ins';
+
+xY         = voiNamesR;
+
+SPM        = 'SPM.mat';
+
+n   = 2;    % number of regions
+
+nu  = 1;    % number of inputs. For DCM for CSD we have one input: null
+
+TR  = 2.5;    % volume repetition time (seconds)
+
+TE  = 0.03; % echo time (seconds)
+
+ 
+
+% Connectivity matrices
+
+a  = ones(n,n);
+
+
+b  = zeros(n,n,nu);
+
+c  = zeros(n,nu);
+
+d  = zeros(n,n,0);
+
+% Specify DCM
+
+s = struct();
+
+s.name       = model_name;
+
+s.u          = [];
+
+s.delays     = repmat(TR/2, 1, n)';
+
+s.TE         = TE;
+
+s.nonlinear  = false;
+
+s.two_state  = false;
+
+s.stochastic = false;
+
+s.centre     = false;
+
+s.induced    = 1;       % indicates DCM for CSD
+
+s.a          = a;
+
+s.b          = b;
+
+s.c          = c;
+
+s.d          = d;
+
+ 
+DCM = spm_dcm_specify(SPM,xY,s);
+
+
+
+end
+
+clear DCM
+%%estimate DCMs
+
+ for h=1: length(subNames) 
+   
+ GCM_L_Ins(h,1) = {fullfile(GLM2_dir, subNames{h},'DCM_L_Ins.mat')}; 
+ 
+ end
+  
+ 
+ for h=1: length(subNames) 
+   
+ GCM_R_Ins(h,1) = {fullfile(GLM2_dir, subNames{h},'DCM_R_Ins.mat')}; 
+ 
+  end
+
+use_parfor = true ;
+GCM_L_Ins = spm_dcm_fit(GCM_L_Ins);
+save('GCM_L_Ins.mat','GCM_L_Ins');
+
+
+GCM_R_Ins = spm_dcm_fit(GCM_R_Ins);
+save('GCM_R_Ins.mat','GCM_R_Ins');
+
+
+%%PEB
+
+
+load GCM_L_Ins.mat 
+load GCM_R_Ins.mat 
+
+
+load BDIAgeSexPost.mat
+
+%DCM for fMRI diagnostics
+spm_dcm_fmri_check (GCM_L_Ins)
+
+BDIAgeSex(:,1)=BDIAgeSex(:,1)-mean(BDIAgeSex(:,1));
+
+BDIAgeSex(:,2)=BDIAgeSex(:,2)-mean(BDIAgeSex(:,2));
+
+M   = struct();
+M.Q = 'all'; 
+
+% Specify design matrix for N subjects. It should start with a constant column
+M.X = horzcat(ones(k,1),BDIAgeSex);
+
+% Choose field
+field = {'A'};
+
+% Estimate model
+
+PEB_L_InsTrt    = spm_dcm_peb(GCM_L_Ins,M,field);
+
+save('PEB_L_InsTrt.mat','PEB_L_InsTrt'); 
+
+M   = struct();
+M.Q = 'all'; 
+
+% Specify design matrix for N subjects. It should start with a constant column
+M.X = horzcat(ones(k,1),BDIAgeSex);
+
+% Choose field
+field = {'A'};
+
+% Estimate model
+
+PEB_R_InsTrt    = spm_dcm_peb(GCM_R_Ins,M,field);
+
+save('PEB_R_InsTrt.mat','PEB_R_InsTrt'); 
+
+%%BMR & BMA
+clear
+filenames={'PEB_L_ExtTrt.mat', 'PEB_R_ExtTrt.mat', 'GCM_L_Ext.mat', 'GCM_R_Ext.mat'};
+
+  
+for kk = 1:numel(filenames)
+    load(filenames{kk})
+end
+
+BMA_L_ExtTrt=spm_dcm_peb_bmc(PEB_L_ExtTrt);
+save('BMA_L_ExtTrt.mat','BMA_L_ExtTrt');
+spm_dcm_peb_review(BMA_L_ExtTrt,GCM_L_Ext);
+
+BMA_R_ExtTrt=spm_dcm_peb_bmc(PEB_R_ExtTrt);
+save('BMA_R_ExtTrt.mat','BMA_R_ExtTrt');
+spm_dcm_peb_review(BMA_R_ExtTrt,GCM_R_Ext);
+
+
+%%leave one out cross validation 
+
+%clear 
+
+load BDIAgeSex.mat
+
+BDIAgeSex(:,1)=BDIAgeSex(:,1)-mean(BDIAgeSex(:,1));
+
+BDIAgeSex(:,2)=BDIAgeSex(:,2)-mean(BDIAgeSex(:,2));
+
+M   = struct();
+M.Q = 'all'; 
+
+% Specify design matrix for N subjects. It should start with a constant column
+M.X = horzcat(ones(k,1),BDIAgeSex);
+
+[qE,qC,Q]=spm_dcm_loo(GCM_L_ExtS,M,{'A'});% (to,from)
