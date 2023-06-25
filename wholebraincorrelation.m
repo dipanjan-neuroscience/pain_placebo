@@ -1,30 +1,4 @@
-% Get a list of all files and folders in ts folder.
-files = dir('ts');
-% Get a logical vector that tells which is a directory.
-dirFlags = [files.isdir];
-% Extract only those that are directories.
-subFolders = files(dirFlags);
-subFolders(ismember( {subFolders.name}, {'.', '..'})) = [];  %remove . and ..
-for k = 1 : length(subFolders)
-subNames{1,k}=subFolders(k).name;
-end
-
-clear  subFolders 
-
-
-
-for sI=1: length(subNames)
-
-
-cd(fullfile('ts\', subNames{sI}))    
-%%convert csv file to matlab table
-t = readtable("out_parc_timeseries.tsv", "FileType","text",'Delimiter', '\t');
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %initialize spm
-clear all
-
 root_dir = pwd;
 SPM_PATH = fullfile(root_dir, 'spm12');
 addpath(SPM_PATH)
@@ -122,4 +96,4 @@ zmatrix=zmatrix.*h;
 
 rmatrix=tanh(zmatrix);
 
-%% plotting result on the brain
+
