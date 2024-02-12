@@ -58,9 +58,9 @@ for k = 1 : length(subFolders)
 subNames{1,k}=subFolders(k).name;
 end
 
-%clear k subFolders 
+%% clear k subFolders 
 
-for sI = 1 %: length(subNames)
+for sI = 3 %4: length(subNames)
 
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -365,6 +365,7 @@ matlabbatch{2}.spm.stats.fmri_est.method.Classical = 1;
 
 spm_jobman('run', matlabbatch)
 
+clear matlabbatch
 
 end
  
